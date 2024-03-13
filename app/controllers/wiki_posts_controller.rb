@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class WikiPostsController < ApplicationController
+include Factories
   before_action :set_wiki_post, only: %i[show edit update destroy]
 
   # GET /wiki_posts or /wiki_posts.json
@@ -23,7 +24,13 @@ class WikiPostsController < ApplicationController
 
   # POST /wiki_posts or /wiki_posts.json
   def create
-    @wiki_post = WikiPost.new(wiki_post_params)
+    is_hidden = wiki_post_params.delete(:hidden) == '1'
+
+    @wiki_post = if is_hidden
+      WikiPostFactory.create_hidden(wiki_post_params)
+    else 
+      WikiPostFactory.create_visible(wiki_post_params)
+    end 
 
     respond_to do |format|
       if @wiki_post.save
