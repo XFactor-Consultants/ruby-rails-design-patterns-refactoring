@@ -2,12 +2,8 @@
 
 module Api
   module V1
-    class WikiPostsController < ActionController::API
-      include ActionController::HttpAuthentication::Token::ControllerMethods
+    class WikiPostsController < ApplicationController
       require 'csv'
-      before_action :authenticate
-
-      TOKEN = ENV['WIKI_API_KEY']
 
       def index
         page = params[:page].to_i
@@ -73,12 +69,6 @@ module Api
 
       def wiki_post_params
         params.permit(:title, :description, :author)
-      end
-
-      def authenticate
-        authenticate_or_request_with_http_token do |token, _options|
-          ActiveSupport::SecurityUtils.secure_compare(token, TOKEN)
-        end
       end
     end
   end
