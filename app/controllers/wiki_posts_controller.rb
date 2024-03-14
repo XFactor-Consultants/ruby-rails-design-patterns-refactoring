@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class WikiPostsController < ApplicationController
+  include Factories
   before_action :set_wiki_post, only: %i[show edit update destroy]
 
   # GET /wiki_posts or /wiki_posts.json
@@ -9,7 +10,20 @@ class WikiPostsController < ApplicationController
   end
 
   # GET /wiki_posts/1 or /wiki_posts/1.json
-  def show; end
+  def show
+    respond_to do |format|
+      format.html do
+        # use the htmlrendering strategy
+        html_renderer = RenderingStrategies::HtmlRendering.new
+        render html: html_renderer.render(@wiki_post).html_safe
+      end
+      format.text do
+        # use the plaintextrendering strategy
+        text_renderer = RenderingStrategies::PlainTextRendering.new
+        render plain: text_renderer.render(@wiki_post)
+      end
+    end
+  end
 
   def example; end
 
@@ -23,7 +37,13 @@ class WikiPostsController < ApplicationController
 
   # POST /wiki_posts or /wiki_posts.json
   def create
-    @wiki_post = WikiPost.new(wiki_post_params)
+    is_hidden = wiki_post_params.delete(:hidden) == '1'
+
+    @wiki_post = if is_hidden
+                   WikiPostFactory.create_hidden(wiki_post_params)
+                 else
+                   WikiPostFactory.create_visible(wiki_post_params)
+                 end
 
     respond_to do |format|
       if @wiki_post.save
