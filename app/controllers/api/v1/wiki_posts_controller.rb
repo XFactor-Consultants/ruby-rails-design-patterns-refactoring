@@ -6,10 +6,8 @@ module Api
       require 'csv'
 
       def index
-        page = params[:page].to_i
-        limit = params[:limit].to_i
-        offset = (page - 1) * limit
-        @wiki_posts = WikiPost.limit(limit).offset(offset)
+        @wiki_posts = paginate(WikiPost.all)
+
         render json: @wiki_posts
       end
 
@@ -56,16 +54,19 @@ module Api
 
       def csv_index
         @wiki_posts = WikiPost.all
-        csv_data = CSV.generate do |csv|
-          csv << %w[ID Title Description Author]
-          @wiki_posts.each do |post|
-            csv << [post.id, post.title, post.description, post.author]
-          end
-        end
+        csv_data = WikiPostCsvGenerator.new(@wiki_posts).generate_csv
+
         send_data csv_data, filename: 'wiki_posts.csv', type: 'text/csv'
       end
 
       private
+
+      def paginate(scope)
+        page = params.fetch(:page).to_i
+        limit = params.fetch(:limit).to_i
+
+        scope.limit(limit).offset((page - 1) * limit)
+      end
 
       def wiki_post_params
         params.permit(:title, :description, :author)
