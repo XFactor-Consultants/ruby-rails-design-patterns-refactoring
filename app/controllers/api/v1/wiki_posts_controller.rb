@@ -3,7 +3,10 @@
 module Api
   module V1
     class WikiPostsController < ApplicationController
+      include Api::V1::WikiPostsHelper
       require 'csv'
+
+      before_action :parse_and_validate_json_request, only: [:create]
 
       def index
         @wiki_posts = paginate(WikiPost.all)
@@ -12,10 +15,13 @@ module Api
       end
 
       def show
-        # render a specific wikipost, found by ID as json
-        @wiki_post = WikiPost.find(params[:id])
-        serialized = WikiPostSerializer.serialize(@wiki_post)
-        render json: serialized
+        wiki_post = WikiPost.find(params[:id])
+        decorated_wiki_post = WikiPostDecorator.new(wiki_post)
+        render json: {
+          upcased_title: decorated_wiki_post.upcased_title,
+          short_description: decorated_wiki_post.short_description,
+          formatted_date: decorated_wiki_post.formatted_date
+        }
       end
 
       def create

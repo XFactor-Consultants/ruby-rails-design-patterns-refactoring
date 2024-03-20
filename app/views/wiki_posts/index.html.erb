@@ -1,6 +1,11 @@
 <p style="color: green"><%= notice %></p>
 
 <h1>Wiki Posts</h1>
+<%= form_with(url: wiki_posts_path, method: :get, local: true) do |form| %>
+  <%= form.label :keyword, 'Search:' %>
+  <%= form.text_field :keyword%>
+  <%= form.submit 'Search'%>
+<%end%>
 
 <table>
   <thead>
