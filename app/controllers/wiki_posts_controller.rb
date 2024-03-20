@@ -6,7 +6,11 @@ class WikiPostsController < ApplicationController
 
   # GET /wiki_posts or /wiki_posts.json
   def index
-    @wiki_posts = WikiPost.all
+    @wiki_posts = if params[:keyword].present?
+                    WikiPost.search(params[:keyword])
+                  else
+                    WikiPost.all_visible
+                  end
   end
 
   # GET /wiki_posts/1 or /wiki_posts/1.json
@@ -88,6 +92,6 @@ class WikiPostsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def wiki_post_params
-    params.fetch(:wiki_post, {}).permit(:title, :description, :author, :image, :hidden)
+    params.fetch(:wiki_post, {}).permit(:title, :description, :author, :image, :hidden, :keyword)
   end
 end
